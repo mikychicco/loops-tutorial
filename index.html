@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loops — a field manual for Claude Code's /loop</title>
+<meta name="description" content="Interactive field manual for Claude Code's /loop: watch loops run in a simulator, build your own commands, and learn the mistakes that burn tokens. Zero to first loop in 15 minutes.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Loops — interactive field manual for Claude Code's /loop">
+<meta property="og:description" content="Watch loops run in a simulator, build your own /loop commands, learn the mistakes that burn tokens. Zero to first loop in 15 minutes.">
+<meta property="og:url" content="https://mikychicco.github.io/loops-tutorial/">
+<meta property="og:image" content="https://mikychicco.github.io/loops-tutorial/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Loops — interactive field manual for Claude Code's /loop">
+<meta name="twitter:image" content="https://mikychicco.github.io/loops-tutorial/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(17% 0.012 75);
+  --bg-raise: oklch(21% 0.014 75);
+  --bg-sink: oklch(13.5% 0.01 75);
+  --ink: oklch(90% 0.02 80);
+  --ink-dim: oklch(68% 0.025 78);
+  --ink-faint: oklch(48% 0.02 78);
+  --amber: oklch(80% 0.155 75);
+  --amber-deep: oklch(68% 0.16 68);
+  --amber-wash: oklch(80% 0.155 75 / 0.09);
+  --amber-line: oklch(80% 0.155 75 / 0.28);
+  --green: oklch(80% 0.17 145);
+  --red: oklch(70% 0.18 28);
+  --line: oklch(32% 0.018 75);
+  --mono: "Martian Mono", ui-monospace, monospace;
+  --sans: "Archivo", system-ui, sans-serif;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--amber);color:var(--bg)}
+main{max-width:1060px;margin:0 auto;padding:0 clamp(1.25rem, 4vw, 3rem)}
+p{max-width:68ch}
+a{color:var(--amber)}
+strong{color:var(--ink);font-weight:700}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
+
+/* ---------- hero ---------- */
+header{
+  border-bottom:1px solid var(--line);
+  padding:clamp(3rem, 8vh, 6rem) 0 clamp(2.5rem, 6vh, 4.5rem);
+}
+.kicker{
+  font-family:var(--mono);
+  font-size:0.78rem;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--amber);
+  margin-bottom:1.5rem;
+}
+h1{
+  font-variation-settings:"wdth" 125, "wght" 900;
+  font-size:clamp(3rem, 9vw, 6.5rem);
+  line-height:0.95;
+  letter-spacing:-0.02em;
+  text-transform:uppercase;
+  margin-bottom:1.75rem;
+}
+h1 .blink{color:var(--amber);animation:cursorblink 1.1s steps(1) infinite}
+@keyframes cursorblink{50%{opacity:0}}
+.lede{
+  font-size:clamp(1.15rem, 1rem + 0.7vw, 1.45rem);
+  line-height:1.5;
+  color:var(--ink-dim);
+  max-width:34em;
+}
+.lede strong{color:var(--ink)}
+
+/* ---------- section scaffolding ---------- */
+section{padding:clamp(3rem, 8vh, 5.5rem) 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+.secthead{display:flex;align-items:baseline;gap:1.25rem;margin-bottom:2.25rem}
+.secnum{
+  font-family:var(--mono);
+  font-weight:300;
+  font-size:clamp(2.2rem, 4vw, 3.2rem);
+  color:var(--amber);
+  line-height:1;
+}
+h2{
+  font-variation-settings:"wdth" 118, "wght" 850;
+  font-size:clamp(1.6rem, 3.2vw, 2.4rem);
+  line-height:1.05;
+  letter-spacing:-0.01em;
+  text-transform:uppercase;
+}
+h3{
+  font-variation-settings:"wdth" 110, "wght" 750;
+  font-size:1.15rem;
+  margin:2.2rem 0 0.7rem;
+}
+.note{
+  margin:1.6rem 0;
+  padding:1rem 1.25rem;
+  background:var(--amber-wash);
+  border:1px solid var(--amber-line);
+  border-radius:6px;
+  max-width:62ch;
+}
+.note .tag{
+  font-family:var(--mono);font-size:0.72rem;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--amber);display:block;margin-bottom:0.35rem;
+}
+
+/* ---------- terminal chrome ---------- */
+.term{
+  background:var(--bg-sink);
+  border:1px solid var(--line);
+  border-radius:8px;
+  font-family:var(--mono);
+  font-size:clamp(0.72rem, 0.65rem + 0.3vw, 0.84rem);
+  line-height:1.75;
+  overflow:hidden;
+}
+.term-bar{
+  display:flex;align-items:center;gap:0.6rem;
+  padding:0.55rem 1rem;
+  border-bottom:1px solid var(--line);
+  color:var(--ink-faint);
+  font-size:0.7rem;letter-spacing:0.08em;
+}
+.term-bar .dots{display:flex;gap:5px}
+.term-bar .dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.term-body{padding:1.1rem 1.25rem;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.t-cmd{color:var(--ink)}
+.t-cmd::before{content:"> ";color:var(--amber)}
+.t-amber{color:var(--amber)}
+.t-green{color:var(--green)}
+.t-dim{color:var(--ink-faint)}
+.t-red{color:var(--red)}
+
+/* ---------- copy rows / recipes ---------- */
+.recipe{margin:1.4rem 0}
+.recipe-label{font-size:0.95rem;color:var(--ink-dim);margin-bottom:0.5rem;max-width:68ch}
+.copyrow{
+  display:flex;align-items:stretch;gap:0;
+  background:var(--bg-sink);
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden;
+}
+.copyrow code{
+  flex:1;font-family:var(--mono);font-size:0.8rem;line-height:1.6;
+  padding:0.8rem 1rem;color:var(--amber);overflow-x:auto;white-space:pre;
+  align-self:center;
+}
+.copybtn{
+  border:none;border-left:1px solid var(--line);
+  background:var(--bg-raise);color:var(--ink-dim);
+  font-family:var(--mono);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
+  padding:0 1.1rem;flex-shrink:0;
+  transition:background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.copybtn:hover{background:var(--amber);color:var(--bg)}
+.copybtn.done{background:var(--green);color:var(--bg)}
+
+/* ---------- variants table ---------- */
+.variants{display:grid;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:1.5rem}
+.variant{
+  display:grid;grid-template-columns:minmax(220px, 1fr) 1.6fr;gap:1.5rem;
+  padding:1.4rem 1.5rem;background:var(--bg-raise);
+}
+.variant + .variant{border-top:1px solid var(--line)}
+.variant code{
+  font-family:var(--mono);font-size:0.82rem;color:var(--amber);
+  display:block;margin-bottom:0.5rem;word-break:break-all;
+}
+.variant .vname{
+  font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.variant p{font-size:0.95rem;color:var(--ink-dim);margin:0}
+.variant p strong{color:var(--ink)}
+@media (max-width:680px){.variant{grid-template-columns:1fr;gap:0.6rem}}
+
+/* ---------- builder ---------- */
+.builder{margin-top:1.8rem}
+.chipgroup{margin-bottom:1.5rem}
+.chipgroup .glabel{
+  font-family:var(--mono);font-size:0.72rem;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:0.7rem;
+}
+.chips{display:flex;flex-wrap:wrap;gap:0.55rem}
+.chip{
+  background:var(--bg-raise);border:1px solid var(--line);color:var(--ink-dim);
+  border-radius:999px;padding:0.45rem 1.05rem;
+  font-family:var(--mono);font-size:0.76rem;
+  transition:border-color 0.18s var(--ease), color 0.18s var(--ease), background 0.18s var(--ease);
+}
+.chip:hover{border-color:var(--amber-line);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700}
+.built{margin-top:0.5rem}
+.built .term-body{font-size:0.9rem}
+.verdict{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:0.8rem;
+  margin:1.1rem 0 0.6rem;
+}
+.verdict .badge{
+  font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+  background:var(--amber);color:var(--bg);font-weight:700;
+  padding:0.3rem 0.7rem;border-radius:4px;
+}
+.verdict h3{margin:0;font-size:1.05rem}
+.behavior{list-style:none;margin-top:0.6rem}
+.behavior li{
+  padding:0.5rem 0;border-top:1px solid var(--line);
+  font-size:0.95rem;color:var(--ink-dim);max-width:68ch;
+  display:flex;gap:0.8rem;
+}
+.behavior li::before{content:"▸";color:var(--amber);flex-shrink:0}
+.behavior li strong{color:var(--ink)}
+
+/* ---------- simulator ---------- */
+.simwrap{margin-top:1.8rem}
+.sim-controls{display:flex;flex-wrap:wrap;gap:0.55rem;margin-bottom:1rem}
+.simbtn{
+  background:var(--bg-raise);border:1px solid var(--line);color:var(--ink);
+  border-radius:6px;padding:0.55rem 1.1rem;
+  font-family:var(--mono);font-size:0.76rem;
+  transition:border-color 0.18s var(--ease), background 0.18s var(--ease), color 0.18s var(--ease);
+}
+.simbtn:hover{border-color:var(--amber-line)}
+.simbtn.primary{background:var(--amber);border-color:var(--amber);color:var(--bg);font-weight:700}
+.simbtn.primary:hover{background:var(--amber-deep);border-color:var(--amber-deep)}
+.simbtn:disabled{opacity:0.35;cursor:default}
+.simbtn:disabled:hover{border-color:var(--line)}
+#simscreen{min-height:340px;max-height:440px;overflow-y:auto}
+#simscreen .line{display:block;animation:fadein 0.25s var(--ease)}
+@keyframes fadein{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.simclock{
+  margin-left:auto;font-family:var(--mono);font-size:0.7rem;color:var(--ink-faint);
+  letter-spacing:0.08em;align-self:center;
+}
+
+/* ---------- timeline ---------- */
+.lifeline{
+  display:grid;grid-template-columns:repeat(4, 1fr);gap:0;
+  margin-top:2rem;border-top:2px solid var(--amber);
+  counter-reset:life;
+}
+.lifeline div{padding:1.1rem 1.2rem 0 0;position:relative;counter-increment:life}
+.lifeline div::before{
+  content:"";position:absolute;top:-6px;left:0;
+  width:10px;height:10px;border-radius:50%;background:var(--amber);
+}
+.lifeline .step{
+  font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--amber);display:block;margin-bottom:0.4rem;
+}
+.lifeline p{font-size:0.9rem;color:var(--ink-dim);margin:0}
+@media (max-width:680px){
+  .lifeline{grid-template-columns:1fr;border-top:none;border-left:2px solid var(--amber)}
+  .lifeline div{padding:0 0 1.4rem 1.2rem}
+  .lifeline div::before{top:6px;left:-6px}
+}
+
+/* ---------- comparison table ---------- */
+table{width:100%;border-collapse:collapse;margin-top:1.6rem;font-size:0.92rem}
+th{
+  font-family:var(--mono);font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--amber);text-align:left;padding:0.7rem 0.9rem;
+  border-bottom:2px solid var(--amber-line);font-weight:400;
+}
+td{padding:0.85rem 0.9rem;border-bottom:1px solid var(--line);color:var(--ink-dim);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+td code{font-family:var(--mono);font-size:0.78rem;color:var(--amber)}
+.tablewrap{overflow-x:auto}
+
+/* ---------- quiz ---------- */
+.quiz{margin-top:1.8rem;display:grid;gap:1.2rem}
+.q{
+  background:var(--bg-raise);border:1px solid var(--line);border-radius:8px;
+  padding:1.4rem 1.5rem;
+}
+.q .qtext{font-weight:700;margin-bottom:1rem;max-width:none}
+.q .qnum{font-family:var(--mono);color:var(--amber);margin-right:0.5rem;font-weight:400;font-size:0.85rem}
+.opts{display:grid;gap:0.5rem}
+.opt{
+  text-align:left;background:var(--bg-sink);border:1px solid var(--line);
+  color:var(--ink-dim);border-radius:6px;padding:0.7rem 1rem;font-size:0.92rem;
+  transition:border-color 0.15s var(--ease);line-height:1.5;
+}
+.opt:hover:not(:disabled){border-color:var(--amber-line);color:var(--ink)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--green);color:var(--green);background:oklch(80% 0.17 145 / 0.07)}
+.opt.wrong{border-color:var(--red);color:var(--red);background:oklch(70% 0.18 28 / 0.07)}
+.explain{
+  display:none;margin-top:0.9rem;font-size:0.9rem;color:var(--ink-dim);
+  padding-top:0.9rem;border-top:1px solid var(--line);max-width:none;
+}
+.explain.show{display:block}
+.explain strong{color:var(--green)}
+#scoreline{
+  margin-top:1.6rem;font-family:var(--mono);font-size:0.85rem;color:var(--ink-dim);
+}
+#scoreline .big{color:var(--amber);font-weight:700}
+
+/* ---------- checklist ---------- */
+.checklist{list-style:none;margin-top:1.6rem;counter-reset:ck;max-width:70ch}
+.checklist li{
+  counter-increment:ck;display:flex;gap:1.2rem;
+  padding:1.2rem 0;border-top:1px solid var(--line);
+}
+.checklist li::before{
+  content:counter(ck, decimal-leading-zero);
+  font-family:var(--mono);font-weight:300;font-size:1.6rem;color:var(--amber);
+  line-height:1.1;flex-shrink:0;
+}
+.checklist .body{flex:1}
+.checklist strong{display:block;margin-bottom:0.25rem}
+.checklist p{font-size:0.95rem;color:var(--ink-dim)}
+
+footer{
+  padding:3rem 0 4rem;color:var(--ink-faint);
+  font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;
+}
+footer p{max-width:none}
+kbd{
+  font-family:var(--mono);font-size:0.8em;
+  background:var(--bg-raise);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:4px;padding:0.1em 0.45em;color:var(--ink);
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="kicker">Field manual · Claude Code · Fable 5 era</p>
+  <h1>Loops<span class="blink">_</span></h1>
+  <p class="lede">You keep retyping "check it again". <strong>/loop</strong> types it for you, on a schedule, while you do something else. This page takes you from zero to your first running loop, with a simulator so you can see one fire before you trust it with real work.</p>
+</header>
+
+<!-- 01 WHY -->
+<section id="why">
+  <div class="secthead"><span class="secnum">01</span><h2>The problem it kills</h2></div>
+  <p>Some work is not one prompt. It is the same prompt, over and over: <em>is the deploy done yet? did CI pass? are the tests green now?</em> Without loops you are the scheduler. You sit there, re-asking, or you walk away and the session goes idle.</p>
+  <p style="margin-top:1rem"><code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/loop</code> hands the re-asking to Claude Code. You describe the recurring task once. The session re-fires it on an interval, does the work each time, and reports back. It keeps running while the session is open, and it knows how to stop.</p>
+  <div class="note">
+    <span class="tag">One sentence to remember</span>
+    A loop is a prompt that re-sends itself until you press <kbd>Esc</kbd>, the task is provably done, or seven days pass.
+  </div>
+</section>
+
+<!-- 02 MENTAL MODEL / VARIANTS -->
+<section id="variants">
+  <div class="secthead"><span class="secnum">02</span><h2>Four shapes, one command</h2></div>
+  <p>Everything about <code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/loop</code> reduces to two questions: <strong>did you give it an interval?</strong> and <strong>did you give it a prompt?</strong> Two yes/no answers, four shapes.</p>
+
+  <div class="variants">
+    <div class="variant">
+      <div>
+        <code>/loop 5m check the deploy</code>
+        <span class="vname">interval + prompt</span>
+      </div>
+      <p><strong>The workhorse.</strong> Your prompt re-runs every 5 minutes, like clockwork. Intervals take <code>s</code>, <code>m</code>, <code>h</code>, <code>d</code>, and odd values get rounded to the nearest clean cron step (Claude tells you what it picked).</p>
+    </div>
+    <div class="variant">
+      <div>
+        <code>/loop fix failing tests until green</code>
+        <span class="vname">prompt only · self-paced</span>
+      </div>
+      <p><strong>The smart one.</strong> No interval, so Claude picks the delay itself (1 minute to 1 hour), waiting less while things are moving and more when they are quiet. It prints each chosen delay with a reason, and it can <strong>end the loop on its own</strong> once the task is provably complete.</p>
+    </div>
+    <div class="variant">
+      <div>
+        <code>/loop 15m</code>
+        <span class="vname">interval only · built-in prompt</span>
+      </div>
+      <p><strong>The janitor.</strong> No prompt, so a built-in maintenance prompt runs every 15 minutes: continue unfinished work, tend the current branch's PR (reviews, failed CI, merge conflicts), then light cleanup. It does not start new initiatives.</p>
+    </div>
+    <div class="variant">
+      <div>
+        <code>/loop</code>
+        <span class="vname">bare · self-paced janitor</span>
+      </div>
+      <p><strong>Hands-off mode.</strong> Built-in maintenance prompt, self-chosen pace. You can replace the built-in prompt by writing your own to <code>.claude/loop.md</code> (project) or <code>~/.claude/loop.md</code> (global). Edits take effect on the next iteration, even mid-loop.</p>
+    </div>
+  </div>
+
+  <h3>Bonus shape: loop another command</h3>
+  <p>The prompt can be a slash command, so any skill you already use becomes repeatable:</p>
+  <div class="recipe">
+    <div class="copyrow">
+      <code>/loop 20m /review-pr 1234</code>
+      <button class="copybtn" data-copy="/loop 20m /review-pr 1234">copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- 03 BUILDER -->
+<section id="builder">
+  <div class="secthead"><span class="secnum">03</span><h2>Build one</h2></div>
+  <p>Mix and match. Pick an interval (or none) and a prompt (or none), and read what the resulting loop will actually do. This is the fastest way to make the four shapes stick.</p>
+
+  <div class="builder">
+    <div class="chipgroup">
+      <span class="glabel">Interval</span>
+      <div class="chips" id="ichips" role="group" aria-label="Choose an interval">
+        <button class="chip" data-i="" aria-pressed="true">none · self-paced</button>
+        <button class="chip" data-i="2m" aria-pressed="false">2m</button>
+        <button class="chip" data-i="5m" aria-pressed="false">5m</button>
+        <button class="chip" data-i="30m" aria-pressed="false">30m</button>
+        <button class="chip" data-i="2h" aria-pressed="false">2h</button>
+      </div>
+    </div>
+    <div class="chipgroup">
+      <span class="glabel">Prompt</span>
+      <div class="chips" id="pchips" role="group" aria-label="Choose a prompt">
+        <button class="chip" data-p="" aria-pressed="false">none · built-in maintenance</button>
+        <button class="chip" data-p="check the deploy; tell me when it's live or if it failed" aria-pressed="true">deploy watch</button>
+        <button class="chip" data-p="run the test suite, fix any failures, repeat until green" aria-pressed="false">tests until green</button>
+        <button class="chip" data-p="check CI on my open PR, rebase if conflicted, address new review comments" aria-pressed="false">babysit PR</button>
+      </div>
+    </div>
+
+    <div class="term built">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span> your command</div>
+      <div class="term-body"><span class="t-cmd" id="builtcmd"></span></div>
+    </div>
+    <div class="verdict">
+      <span class="badge" id="vbadge"></span>
+      <h3 id="vname"></h3>
+    </div>
+    <ul class="behavior" id="vlist"></ul>
+  </div>
+</section>
+
+<!-- 04 SIMULATOR -->
+<section id="sim">
+  <div class="secthead"><span class="secnum">04</span><h2>Watch one run</h2></div>
+  <p>A compressed replay of real loop sessions (minutes squeezed into seconds). Pick a scenario, watch the iterations fire, and try cancelling with <kbd>Esc</kbd>, exactly the key you'd press in the real terminal while a loop waits.</p>
+
+  <div class="simwrap">
+    <div class="sim-controls">
+      <button class="simbtn primary" data-scn="fixed">▶ fixed interval</button>
+      <button class="simbtn primary" data-scn="dynamic">▶ self-paced</button>
+      <button class="simbtn primary" data-scn="bare">▶ bare /loop</button>
+      <button class="simbtn" id="ffbtn" disabled>fast-forward ≫</button>
+      <button class="simbtn" id="escbtn" disabled>press Esc</button>
+      <span class="simclock" id="simclock">session clock 14:02</span>
+    </div>
+    <div class="term">
+      <div class="term-bar"><span class="dots"><i></i><i></i><i></i></span> claude — simulated session</div>
+      <div class="term-body" id="simscreen"><span class="line t-dim">Pick a scenario above to start the replay.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 LIFECYCLE -->
+<section id="stop">
+  <div class="secthead"><span class="secnum">05</span><h2>How loops end</h2></div>
+  <p>Nothing here runs forever. Four exits, in the order you will meet them:</p>
+  <div class="lifeline">
+    <div>
+      <span class="step">You press Esc</span>
+      <p>While a loop waits for its next run, <kbd>Esc</kbd> clears the pending wakeup. It never fires again. This only works for loops started with <code style="font-family:var(--mono)">/loop</code> syntax.</p>
+    </div>
+    <div>
+      <span class="step">It finishes itself</span>
+      <p>Self-paced loops (the no-interval kind) can stop on their own once the task is <em>provably</em> complete: tests green, deploy live, PR merged.</p>
+    </div>
+    <div>
+      <span class="step">You cancel by name</span>
+      <p>Ask in plain language: <em>"what scheduled tasks do I have?"</em> then <em>"cancel the deploy check"</em>. Each task has an 8-character ID. A session holds up to 50.</p>
+    </div>
+    <div>
+      <span class="step">7-day expiry</span>
+      <p>Every recurring task self-deletes 7 days after creation: one final run, then gone. A forgotten loop cannot haunt you. Resuming a session within 7 days restores unexpired loops.</p>
+    </div>
+  </div>
+  <div class="note">
+    <span class="tag">The catch</span>
+    Loops live <strong>inside the session</strong>. Close the terminal, lose the SSH connection, and the loop dies with it. For automation that must survive your laptop, use <code style="font-family:var(--mono)">/schedule</code> (cloud routines) instead.
+  </div>
+</section>
+
+<!-- 06 SIBLINGS -->
+<section id="siblings">
+  <div class="secthead"><span class="secnum">06</span><h2>Loop, goal, or schedule?</h2></div>
+  <p>Three commands keep Claude working without you. They answer different questions:</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Command</th><th>Fires when</th><th>Lives</th><th>Reach for it when</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>/loop</code></td>
+        <td>A time interval elapses (fixed or self-paced)</td>
+        <td>In your session, on your machine, max 7 days</td>
+        <td>"Keep checking X while I work on Y." Polling, monitoring, babysitting.</td>
+      </tr>
+      <tr>
+        <td><code>/goal</code></td>
+        <td>After every turn, until a condition holds</td>
+        <td>In your session</td>
+        <td>"Don't stop until tests pass." A target, not a timer.</td>
+      </tr>
+      <tr>
+        <td><code>/schedule</code></td>
+        <td>A cron schedule, on Anthropic's cloud</td>
+        <td>Independent of your machine, survives restarts</td>
+        <td>"Every morning at 9, triage new issues." Durable, unattended automation.</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:1.4rem">Rule of thumb: <strong>timer → loop, target → goal, calendar → schedule.</strong></p>
+</section>
+
+<!-- 07 RECIPES -->
+<section id="recipes">
+  <div class="secthead"><span class="secnum">07</span><h2>Recipes to steal</h2></div>
+
+  <div class="recipe">
+    <p class="recipe-label"><strong>Deploy watch.</strong> Fixed 2-minute poll; reports the moment it flips.</p>
+    <div class="copyrow">
+      <code>/loop 2m check the deploy, is it finished? if so tell me the status</code>
+      <button class="copybtn" data-copy="/loop 2m check the deploy, is it finished? if so tell me the status">copy</button>
+    </div>
+  </div>
+
+  <div class="recipe">
+    <p class="recipe-label"><strong>Tests until green.</strong> Self-paced, so it can end itself when the suite passes. The best first loop to try.</p>
+    <div class="copyrow">
+      <code>/loop check if all tests pass, fix any failures and re-run</code>
+      <button class="copybtn" data-copy="/loop check if all tests pass, fix any failures and re-run">copy</button>
+    </div>
+  </div>
+
+  <div class="recipe">
+    <p class="recipe-label"><strong>PR babysitter.</strong> Half-hourly sweep of CI, conflicts, and review comments.</p>
+    <div class="copyrow">
+      <code>/loop 30m check CI on my open PR, rebase if conflicted, address new review comments</code>
+      <button class="copybtn" data-copy="/loop 30m check CI on my open PR, rebase if conflicted, address new review comments">copy</button>
+    </div>
+  </div>
+
+  <div class="recipe">
+    <p class="recipe-label"><strong>Project default.</strong> Drop this in <code style="font-family:var(--mono);font-size:0.85em">.claude/loop.md</code> and a bare <code style="font-family:var(--mono);font-size:0.85em">/loop</code> becomes your project's own janitor (max 25,000 bytes, keep it tight):</p>
+    <div class="copyrow">
+      <code>Check the release/next PR. If CI is red, pull the failing job log,
+diagnose, and push a minimal fix. If new review comments arrived,
+address each one and resolve the thread. If everything is green
+and quiet, say so in one line.</code>
+      <button class="copybtn" data-copy="Check the release/next PR. If CI is red, pull the failing job log, diagnose, and push a minimal fix. If new review comments arrived, address each one and resolve the thread. If everything is green and quiet, say so in one line.">copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- 08 GOTCHAS -->
+<section id="gotchas">
+  <div class="secthead"><span class="secnum">08</span><h2>What bites beginners</h2></div>
+
+  <h3 style="margin-top:0">Tokens compound</h3>
+  <p>Every iteration re-sends the whole conversation: history, system prompt, every log you ever read. Long loops over big contexts get expensive quietly. Check <code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/usage</code> early and often, run <code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/clear</code> before starting an unrelated loop, and consider Sonnet for dumb polling: it is plenty smart for "is the build done" and much cheaper than Opus or Fable.</p>
+
+  <h3>Watch the first two iterations</h3>
+  <p>Never start a loop and walk away immediately. Watch it fire once or twice, confirm it is doing what you meant, then leave. A loop that misunderstood you compounds its misunderstanding on schedule.</p>
+
+  <h3>Give it something checkable</h3>
+  <p>"Improve the codebase" loops forever because nothing proves it is done. "Run the tests, fix failures, stop when green" has a verdict Claude can run. Self-paced loops especially need a verifiable finish line, since they decide for themselves when to stop.</p>
+
+  <h3>Timing is approximate, on purpose</h3>
+  <p>Fixed intervals get jitter (up to 30 minutes or half the interval) so thousands of loops don't fire at once. If a scheduled tick passes while Claude is busy, it fires <em>once</em> when idle, not once per missed tick. Loops are for monitoring, not for cron-precision triggers.</p>
+
+  <h3>Permissions carry over</h3>
+  <p>A loop inherits the session's permission mode. A loop in bypass mode pushes, deletes, and deploys without asking, every iteration, unattended. For your first loops, stay in a mode where risky actions still prompt.</p>
+
+  <div class="note">
+    <span class="tag">Cloud providers</span>
+    On Bedrock, Vertex AI, and Microsoft Foundry, self-paced mode falls back to fixed 10-minute intervals, and bare <code style="font-family:var(--mono)">/loop</code> just prints usage. The fixed-interval shapes work everywhere.
+  </div>
+</section>
+
+<!-- 09 QUIZ -->
+<section id="quiz">
+  <div class="secthead"><span class="secnum">09</span><h2>Prove it stuck</h2></div>
+  <p>Six questions. Answers explain themselves.</p>
+  <div class="quiz" id="quizbox"></div>
+  <p id="scoreline" aria-live="polite"></p>
+</section>
+
+<!-- 10 FIRST LOOP -->
+<section id="first">
+  <div class="secthead"><span class="secnum">10</span><h2>Your first loop, today</h2></div>
+  <ol class="checklist">
+    <li><div class="body"><strong>Pick a task you re-ask anyway.</strong><p>A deploy you keep checking, a flaky test suite, a PR waiting on CI. Loops earn their cost on tasks you were already repeating by hand.</p></div></li>
+    <li><div class="body"><strong>Start self-paced with a checkable finish.</strong><p>Run the "tests until green" recipe above. Self-paced loops can end themselves, so your first loop also teaches you how loops stop.</p></div></li>
+    <li><div class="body"><strong>Watch iteration one and two.</strong><p>Confirm the loop understood you. Note the delay it picks and the reason it prints.</p></div></li>
+    <li><div class="body"><strong>Practice the exits.</strong><p>Press <kbd>Esc</kbd> during a wait. Ask "what scheduled tasks do I have?". Cancel one by name. Now nothing about loops can surprise you.</p></div></li>
+    <li><div class="body"><strong>Check <span style="font-family:var(--mono);color:var(--amber);font-size:0.9em">/usage</span> after an hour.</strong><p>See what the loop actually cost. That number tells you whether to loop with Fable, or hand the polling to Sonnet.</p></div></li>
+  </ol>
+</section>
+
+<footer>
+  <p>Requires Claude Code v2.1.72+. Works with every current model (Fable 5, Opus 4.x, Sonnet 4.x, Haiku 4.5); Fable's long-session strength is why loops feel like the new meta. Full docs: code.claude.com/docs → "Run prompts on a schedule".</p>
+  <p style="margin-top:1.5rem;color:var(--ink-dim)">Made by <strong style="color:var(--amber)">Michele Balsamo</strong>. You probably got this link from my LinkedIn — if it helped, say so in the DMs and tell me what you loop first.</p>
+</footer>
+
+</main>
+
+<script>
+/* ---------- copy buttons ---------- */
+document.querySelectorAll('.copybtn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(btn.dataset.copy); } catch(e) {}
+    btn.textContent = 'copied'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('done'); }, 1400);
+  });
+});
+
+/* ---------- builder ---------- */
+const ichips = document.querySelectorAll('#ichips .chip');
+const pchips = document.querySelectorAll('#pchips .chip');
+let curI = '', curP = 'check the deploy; tell me when it\'s live or if it failed';
+
+function pick(group, target){
+  group.forEach(c => c.setAttribute('aria-pressed', c === target ? 'true' : 'false'));
+}
+ichips.forEach(c => c.addEventListener('click', () => { curI = c.dataset.i; pick(ichips, c); renderBuild(); }));
+pchips.forEach(c => c.addEventListener('click', () => { curP = c.dataset.p; pick(pchips, c); renderBuild(); }));
+
+function renderBuild(){
+  const cmd = ('/loop ' + [curI, curP].filter(Boolean).join(' ')).trim();
+  document.getElementById('builtcmd').textContent = cmd;
+  const hasI = !!curI, hasP = !!curP;
+  let badge, name, rows;
+  if (hasI && hasP){
+    badge = 'shape 1'; name = 'Fixed interval, your prompt';
+    rows = [
+      '<strong>Cadence:</strong> exactly every ' + curI + ' (rounded to a clean cron step, with some jitter).',
+      '<strong>Each run:</strong> your prompt, re-sent as if you typed it.',
+      '<strong>Stops when:</strong> you press Esc, you cancel it by name, or 7 days pass. It will NOT stop itself, even if the task finishes.'
+    ];
+  } else if (!hasI && hasP){
+    badge = 'shape 2'; name = 'Self-paced, your prompt';
+    rows = [
+      '<strong>Cadence:</strong> Claude picks each delay (1m to 1h) and prints the reason: short while things move, long when quiet.',
+      '<strong>Each run:</strong> your prompt, plus judgment about whether to keep going.',
+      '<strong>Stops when:</strong> the task is provably complete (it can end itself), or Esc / cancel / 7 days.'
+    ];
+  } else if (hasI && !hasP){
+    badge = 'shape 3'; name = 'Fixed interval, built-in maintenance';
+    rows = [
+      '<strong>Cadence:</strong> every ' + curI + '.',
+      '<strong>Each run:</strong> built-in janitor prompt: continue unfinished work, tend the current PR (CI, conflicts, reviews), light cleanup. No new initiatives.',
+      '<strong>Stops when:</strong> Esc, cancel by name, or 7-day expiry.'
+    ];
+  } else {
+    badge = 'shape 4'; name = 'Bare /loop: self-paced janitor';
+    rows = [
+      '<strong>Cadence:</strong> self-chosen, 1m to 1h.',
+      '<strong>Each run:</strong> built-in maintenance prompt, or your own if .claude/loop.md exists.',
+      '<strong>Stops when:</strong> nothing left worth doing, Esc, cancel, or 7 days. (On Bedrock / Vertex / Foundry this shape just prints usage.)'
+    ];
+  }
+  document.getElementById('vbadge').textContent = badge;
+  document.getElementById('vname').textContent = name;
+  document.getElementById('vlist').innerHTML = rows.map(r => '<li><span>' + r + '</span></li>').join('');
+}
+renderBuild();
+
+/* ---------- simulator ---------- */
+const screen = document.getElementById('simscreen');
+const clockEl = document.getElementById('simclock');
+const ffbtn = document.getElementById('ffbtn');
+const escbtn = document.getElementById('escbtn');
+let simTimer = null, simQueue = [], simIdx = 0, simActive = false;
+
+const SCN = {
+fixed: [
+  {c:'14:02', cls:'t-cmd', t:'/loop 5m check if the deploy finished'},
+  {c:'14:02', cls:'t-amber', t:'⏰ Loop scheduled: every 5 minutes · job a3f8c2d1'},
+  {c:'14:02', cls:'t-dim', t:'   prompt: "check if the deploy finished" · expires in 7 days'},
+  {c:'14:05', cls:'t-dim', t:'── 14:05 · iteration 1 ──────────────────────'},
+  {c:'14:05', cls:'', t:'● Bash(curl -s api.example.com/deploy/status)'},
+  {c:'14:05', cls:'t-dim', t:'  ⎿ {"status":"building","progress":"58%"}'},
+  {c:'14:05', cls:'', t:'Deploy still building (58%). Nothing to do yet.'},
+  {c:'14:05', cls:'t-amber', t:'⏱ next run in 5m · Esc cancels', wait:true},
+  {c:'14:10', cls:'t-dim', t:'── 14:10 · iteration 2 ──────────────────────'},
+  {c:'14:10', cls:'', t:'● Bash(curl -s api.example.com/deploy/status)'},
+  {c:'14:10', cls:'t-dim', t:'  ⎿ {"status":"building","progress":"91%"}'},
+  {c:'14:10', cls:'', t:'91% and climbing. Almost there.'},
+  {c:'14:10', cls:'t-amber', t:'⏱ next run in 5m · Esc cancels', wait:true},
+  {c:'14:15', cls:'t-dim', t:'── 14:15 · iteration 3 ──────────────────────'},
+  {c:'14:15', cls:'', t:'● Bash(curl -s api.example.com/deploy/status)'},
+  {c:'14:15', cls:'t-dim', t:'  ⎿ {"status":"live","version":"v2.4.1"}'},
+  {c:'14:15', cls:'t-green', t:'✓ Deploy is LIVE (v2.4.1). Smoke check passed.'},
+  {c:'14:15', cls:'t-amber', t:'⏱ next run in 5m · Esc cancels', wait:true},
+  {c:'14:15', cls:'t-dim', t:'(fixed-interval loops keep polling even after success — this is the moment you press Esc)', wait:true}
+],
+dynamic: [
+  {c:'09:14', cls:'t-cmd', t:'/loop run the tests, fix any failures, stop when green'},
+  {c:'09:14', cls:'t-amber', t:'⏰ Loop scheduled: self-paced (1m–1h) · job 7c21e9b4'},
+  {c:'09:14', cls:'t-dim', t:'── 09:14 · iteration 1 ──────────────────────'},
+  {c:'09:14', cls:'', t:'● Bash(npm test)'},
+  {c:'09:15', cls:'t-red', t:'  ⎿ 3 failed, 142 passed'},
+  {c:'09:15', cls:'', t:'Fixed date parsing in utils.ts; two failures remain in auth.spec.ts.'},
+  {c:'09:15', cls:'t-amber', t:'⏱ waiting 2m — actively converging, staying close · Esc cancels', wait:true},
+  {c:'09:17', cls:'t-dim', t:'── 09:17 · iteration 2 ──────────────────────'},
+  {c:'09:17', cls:'', t:'● Bash(npm test)'},
+  {c:'09:18', cls:'t-red', t:'  ⎿ 1 failed, 144 passed'},
+  {c:'09:18', cls:'', t:'Patched the token-expiry mock. One flaky timeout left; raised it to 5s.'},
+  {c:'09:18', cls:'t-amber', t:'⏱ waiting 1m — one test from green · Esc cancels', wait:true},
+  {c:'09:19', cls:'t-dim', t:'── 09:19 · iteration 3 ──────────────────────'},
+  {c:'09:19', cls:'', t:'● Bash(npm test)'},
+  {c:'09:20', cls:'t-green', t:'  ⎿ 145 passed, 0 failed'},
+  {c:'09:20', cls:'t-green', t:'✓ Suite green. Task provably complete.'},
+  {c:'09:20', cls:'t-amber', t:'⏹ Loop ended itself — no further runs scheduled.'},
+  {c:'09:20', cls:'t-dim', t:'(this self-stop is the superpower of self-paced loops)'}
+],
+bare: [
+  {c:'16:40', cls:'t-cmd', t:'/loop'},
+  {c:'16:40', cls:'t-amber', t:'⏰ Loop scheduled: self-paced · built-in maintenance prompt · job d09a44f2'},
+  {c:'16:40', cls:'t-dim', t:'   (no .claude/loop.md found — using the default janitor prompt)'},
+  {c:'16:40', cls:'t-dim', t:'── 16:40 · iteration 1 ──────────────────────'},
+  {c:'16:40', cls:'', t:'● Bash(gh pr checks 412)'},
+  {c:'16:41', cls:'t-red', t:'  ⎿ lint: FAIL · tests: pass · build: pass'},
+  {c:'16:41', cls:'', t:'Lint failure on PR #412: unused import in api/routes.ts. Fixed, pushed.'},
+  {c:'16:41', cls:'t-amber', t:'⏱ waiting 8m — CI re-running on the fix · Esc cancels', wait:true},
+  {c:'16:49', cls:'t-dim', t:'── 16:49 · iteration 2 ──────────────────────'},
+  {c:'16:49', cls:'', t:'● Bash(gh pr checks 412)'},
+  {c:'16:49', cls:'t-green', t:'  ⎿ lint: pass · tests: pass · build: pass'},
+  {c:'16:49', cls:'', t:'PR #412 fully green. No new review comments. Nothing unfinished in this session.'},
+  {c:'16:49', cls:'t-amber', t:'⏱ waiting 45m — all quiet, backing off · Esc cancels', wait:true},
+  {c:'17:34', cls:'t-dim', t:'── 17:34 · iteration 3 ──────────────────────'},
+  {c:'17:34', cls:'', t:'Still quiet. Ran a light cleanup pass: removed two dead feature flags.'},
+  {c:'17:34', cls:'t-amber', t:'⏱ waiting 1h — nothing pending · Esc cancels', wait:true},
+  {c:'17:34', cls:'t-dim', t:'(notice the back-off: 8m → 45m → 1h as things calm down)', wait:true}
+]
+};
+
+function addLine(step){
+  const s = document.createElement('span');
+  s.className = 'line ' + (step.cls || '');
+  s.textContent = step.t;
+  screen.appendChild(s);
+  screen.scrollTop = screen.scrollHeight;
+  clockEl.textContent = 'session clock ' + step.c;
+}
+
+function stepSim(){
+  if (simIdx >= simQueue.length){ endSim(false); return; }
+  const step = simQueue[simIdx++];
+  addLine(step);
+  escbtn.disabled = !step.wait;
+  if (simIdx < simQueue.length){
+    simTimer = setTimeout(stepSim, step.wait ? 1600 : 750);
+  } else {
+    endSim(false);
+  }
+}
+
+function startSim(name){
+  clearTimeout(simTimer);
+  screen.innerHTML = '';
+  simQueue = SCN[name]; simIdx = 0; simActive = true;
+  ffbtn.disabled = false; escbtn.disabled = true;
+  stepSim();
+}
+
+function endSim(cancelled){
+  simActive = false;
+  ffbtn.disabled = true; escbtn.disabled = true;
+  if (cancelled){
+    addLine({c: clockEl.textContent.replace('session clock ',''), cls:'t-red', t:'✗ Esc pressed — pending wakeup cleared. Loop will not fire again.'});
+    addLine({c: clockEl.textContent.replace('session clock ',''), cls:'t-dim', t:'(in the real terminal, that single keypress is all it takes)'});
+  }
+}
+
+document.querySelectorAll('[data-scn]').forEach(b =>
+  b.addEventListener('click', () => startSim(b.dataset.scn)));
+
+ffbtn.addEventListener('click', () => {
+  clearTimeout(simTimer);
+  while (simIdx < simQueue.length) addLine(simQueue[simIdx++]);
+  endSim(false);
+});
+
+function simEsc(){
+  if (!simActive) return;
+  clearTimeout(simTimer);
+  endSim(true);
+}
+escbtn.addEventListener('click', simEsc);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && simActive && !escbtn.disabled) simEsc();
+});
+
+/* ---------- quiz ---------- */
+const QUIZ = [
+  {
+    q: 'A loop is waiting for its next run and you want it gone, now. What do you do?',
+    opts: ['Type /loop stop', 'Press Esc while it waits', 'Close and reopen the file you were editing', 'Wait for it to notice you look annoyed'],
+    a: 1,
+    why: 'Esc during the wait clears the pending wakeup; the loop never fires again. (You can also ask Claude to cancel it by name.) There is no /loop stop command.'
+  },
+  {
+    q: 'You run /loop 15m with no prompt. What happens every 15 minutes?',
+    opts: ['Nothing, it errors without a prompt', 'It re-sends your last message', 'A built-in maintenance prompt runs: continue work, tend the PR, clean up', 'It asks you what to do'],
+    a: 2,
+    why: 'Interval without prompt means the built-in janitor: continue unfinished work, tend the current branch\'s PR (CI, conflicts, reviews), light cleanup. It does not start new initiatives.'
+  },
+  {
+    q: 'What is special about a loop started WITHOUT an interval, like /loop fix the tests?',
+    opts: ['It runs exactly once', 'It runs every 10 minutes, always', 'Claude picks each delay (1m–1h) and can end the loop itself when the task is provably done', 'It runs continuously with no pauses'],
+    a: 2,
+    why: 'Self-paced mode: Claude chooses each wait based on what is happening, prints the reason, and can stop on its own once the task is verifiably complete. Fixed-interval loops never stop themselves.'
+  },
+  {
+    q: 'You start a loop on Monday and forget about it. What happens the following Monday?',
+    opts: ['It runs forever until you remember', 'It expired after 7 days: one final run, then it deleted itself', 'It emails you a warning', 'It pauses and waits for confirmation'],
+    a: 1,
+    why: 'Recurring tasks expire 7 days after creation. A forgotten loop is bounded by design. Resume the session within those 7 days and unexpired loops come back.'
+  },
+  {
+    q: 'You want Claude to keep working until tests pass, then STOP the session there. Best tool?',
+    opts: ['/loop, with a short interval', '/goal, with "tests pass" as the condition', '/schedule, hourly', 'Just ask nicely once'],
+    a: 1,
+    why: '/goal fires after every turn until a condition holds — a target, not a timer. /loop is for recurring time-based work; /schedule is cloud cron.'
+  },
+  {
+    q: 'You close your laptop with a loop running. Tomorrow the loop has…',
+    opts: ['Kept running in the cloud overnight', 'Died with the session — loops are session-scoped', 'Sent results to your email', 'Migrated to another device'],
+    a: 1,
+    why: 'Loops live inside the session on your machine. Closed terminal = dead loop (resumable within 7 days via --resume). For automation that survives your laptop, use /schedule cloud routines.'
+  }
+];
+
+const quizbox = document.getElementById('quizbox');
+let answered = 0, correct = 0;
+QUIZ.forEach((item, qi) => {
+  const card = document.createElement('div');
+  card.className = 'q';
+  card.innerHTML = '<p class="qtext"><span class="qnum">Q' + (qi+1) + '</span>' + item.q + '</p>';
+  const opts = document.createElement('div');
+  opts.className = 'opts';
+  item.opts.forEach((o, oi) => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.textContent = o;
+    b.addEventListener('click', () => {
+      opts.querySelectorAll('.opt').forEach(x => x.disabled = true);
+      if (oi === item.a){ b.classList.add('right'); correct++; }
+      else { b.classList.add('wrong'); opts.children[item.a].classList.add('right'); }
+      ex.classList.add('show');
+      answered++;
+      updateScore();
+    });
+    opts.appendChild(b);
+  });
+  const ex = document.createElement('p');
+  ex.className = 'explain';
+  ex.innerHTML = '<strong>' + (item.opts[item.a]) + '.</strong> ' + item.why;
+  card.appendChild(opts); card.appendChild(ex);
+  quizbox.appendChild(card);
+});
+function updateScore(){
+  const el = document.getElementById('scoreline');
+  if (answered < QUIZ.length){
+    el.innerHTML = answered + ' / ' + QUIZ.length + ' answered · <span class="big">' + correct + ' correct</span>';
+  } else {
+    const msg = correct === 6 ? 'Perfect. Go start a loop.' :
+                correct >= 4 ? 'Solid. Skim section 05 once more, then go loop something.' :
+                'Worth one more pass through sections 02 and 05.';
+    el.innerHTML = '<span class="big">' + correct + ' / 6</span> · ' + msg;
+  }
+}
+</script>
+</body>
+</html>
