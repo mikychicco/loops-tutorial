@@ -6,8 +6,8 @@
 <title>Loops — a field manual for Claude Code's /loop</title>
 <meta name="description" content="Interactive field manual for Claude Code's /loop: watch loops run in a simulator, build your own commands, and learn the mistakes that burn tokens. Zero to first loop in 15 minutes.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Loops — interactive field manual for Claude Code's /loop">
-<meta property="og:description" content="Watch loops run in a simulator, build your own /loop commands, learn the mistakes that burn tokens. Zero to first loop in 15 minutes.">
+<meta property="og:title" content="Loops — the Fable 5-era skill everyone skipped">
+<meta property="og:description" content="Stop prompting, start delegating. Watch loops run in a simulator, build your own /loop commands, go from zero to your first loop in 15 minutes. No terminal wizardry required.">
 <meta property="og:url" content="https://mikychicco.github.io/loops-tutorial/">
 <meta property="og:image" content="https://mikychicco.github.io/loops-tutorial/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -350,14 +350,15 @@ kbd{
 <header>
   <p class="kicker">Field manual · Claude Code · Fable 5 era</p>
   <h1>Loops<span class="blink">_</span></h1>
-  <p class="lede">You keep retyping "check it again". <strong>/loop</strong> types it for you, on a schedule, while you do something else. This page takes you from zero to your first running loop, with a simulator so you can see one fire before you trust it with real work.</p>
+  <p class="lede">You keep retyping "check it again". <strong>/loop</strong> types it for you, on a schedule, while you do something else. This page takes you from zero to your first running loop, with a simulator so you can see one fire before you trust it with real work. No terminal wizardry required: if you can describe the job, you can loop it.</p>
 </header>
 
 <!-- 01 WHY -->
 <section id="why">
   <div class="secthead"><span class="secnum">01</span><h2>The problem it kills</h2></div>
   <p>Some work is not one prompt. It is the same prompt, over and over: <em>is the deploy done yet? did CI pass? are the tests green now?</em> Without loops you are the scheduler. You sit there, re-asking, or you walk away and the session goes idle.</p>
-  <p style="margin-top:1rem"><code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/loop</code> hands the re-asking to Claude Code. You describe the recurring task once. The session re-fires it on an interval, does the work each time, and reports back. It keeps running while the session is open, and it knows how to stop.</p>
+  <p style="margin-top:1rem"><code style="font-family:var(--mono);color:var(--amber);font-size:0.85em">/loop</code> hands the re-asking to Claude Code. You describe the recurring task once, in plain language; Claude figures out the commands. The session re-fires it on an interval, does the work each time, and reports back. It keeps running while the session is open, and it knows how to stop.</p>
+  <p style="margin-top:1rem">This is the shift from <strong>operating</strong> an AI (you prompt, it answers, you prompt again) to <strong>managing</strong> one (you set the job, it owns the follow-through). Fable 5's long-session reliability is what makes that trade finally worth taking.</p>
   <div class="note">
     <span class="tag">One sentence to remember</span>
     A loop is a prompt that re-sends itself until you press <kbd>Esc</kbd>, the task is provably done, or seven days pass.
